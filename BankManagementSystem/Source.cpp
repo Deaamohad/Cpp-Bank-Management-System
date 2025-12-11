@@ -68,11 +68,12 @@ void WriteClientsToFile(vector<stClient> &clients, string FileName) {
 
 	fstream file;
 	file.open(FileName, ios::out);
-	file.seekg(0);
 	
 	for (stClient& client : clients) {
 		file << ConvertRecordToLine(client) << endl;
 	}
+
+	file.close();
 }
 
 void DisplayClients() {
@@ -96,6 +97,10 @@ void DisplayClients() {
 		cout << "|"; center(15, client.Phone); cout << "|";
 		center(20, to_string(client.Balance)); cout << endl;
 	}
+
+	cout << "\nPress any key to go back to the main menu.\n";
+	cin.get();
+	cin.ignore();
 }
 
 bool AccountExists(string acc, string FileName) {
@@ -118,8 +123,11 @@ void AddNewClient() {
 
 	do {
 		cin.ignore(1, '\n');
-		cout << "\nEnter Account Number: ";
+		cout << "\nEnter Account Number (press q to exit): ";
+
 		getline(cin, client.AccountNumber);
+		if (client.AccountNumber == "q")
+			return;
 		while (AccountExists(client.AccountNumber, FileName)) {
 			cout << "Account Number " << client.AccountNumber << " already exists, please enter a different number: ";
 			getline(cin, client.AccountNumber);
@@ -142,8 +150,49 @@ void AddNewClient() {
 	file.close();
 }
 
-void FindClient() {
+// update doesn't update the file, add exit command for the functions;
 
+void UpdateClient() {
+
+	string input;
+	vector<stClient> vClients = GetClientsFromFile(FileName);
+	char choice = 'n';
+
+	while (true) {
+		cout << "Please enter the Account number to update (press q to exit): ";
+		cin >> input;
+		if (input == "q")
+			return;
+		bool found = false;
+
+		for (stClient& client : vClients) {
+			if (client.AccountNumber == input) {
+				found = true;
+				cout << "Found Account " << input << "! Please fill the new information:\n";
+				cin.ignore(1, '\n');
+				cout << "Enter Pin Code: ";
+				getline(cin, client.PinCode);
+				cout << "Enter Name: ";
+				getline(cin, client.Name);
+				cout << "Enter Phone: ";
+				getline(cin, client.Phone);
+				cout << "Enter Balance: ";
+				cin >> client.Balance;
+
+				WriteClientsToFile(vClients, FileName);
+				cout << "\nClient (" << client.AccountNumber << ") Updated Successfully!\nDo you want to update more Client/s (y/n)? ";
+				cin >> choice;
+
+				if (tolower(choice) != 'y')
+					return;
+				break;
+			}
+		}
+
+		if (!found) {
+			cout << "Account " << input << " not found\n";
+		}
+	}
 }
 
 
@@ -156,8 +205,10 @@ void DeleteClient() {
 
 	while (true) {
 
-		cout << "Please enter the Account number to delete: ";
+		cout << "Please enter the Account number to delete (press q to exit): ";
 		cin >> input;
+		if (input == "q")
+			return;
 		bool found = false;
 
 		for (size_t i = 0; i < vClients.size(); i++) {
@@ -195,6 +246,7 @@ void SelectOption(int userSelection) {
 		DeleteClient();
 		break;
 	case Update:
+		UpdateClient();
 		break;
 	case Find:
 		break;
@@ -224,9 +276,20 @@ void DisplayMenu() {
 int GetUserSelection() {
 
 	int userSelection;
-	cout << "Choose what do you want to do (1-6): ";
-	cin >> userSelection;
-	return userSelection;
+	while (true) {
+		cout << "Choose what you want to do (1-6): ";
+		if (cin >> userSelection) {
+			if (userSelection >= 1 && userSelection <= 6)
+				return userSelection;
+
+			cout << "Invalid choice! Please enter a number between 1 and 6.\n";
+		}
+		else {
+			cout << "Invalid input! Please enter a valid number.\n";
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		}
+	}
 }
 
 
@@ -244,9 +307,6 @@ int main() {
 		}
 		system("cls");
 		SelectOption(userSelection);
-		cout << "\nPress any key to go back to the main menu:";
-		cin.get();
-		cin.ignore();
 		system("cls");
 	}
 	
