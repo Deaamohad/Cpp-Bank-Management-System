@@ -7,14 +7,14 @@
 #include "MyHeader.h"
 using namespace std;
 
-// Do "Update" and "Find"
+// do find function, debug for errors.
 
 struct stClient {
 	string AccountNumber;
 	string PinCode;
 	string Name;
 	string Phone;
-	double Balance;
+	double Balance = 0;
 };
 
 enum enBankOption { Show = 1, Add, Delete, Update, Find, Exit };
@@ -150,7 +150,44 @@ void AddNewClient() {
 	file.close();
 }
 
-// update doesn't update the file, add exit command for the functions;
+void FindClient() {
+	
+	vector<stClient> vClients = GetClientsFromFile(FileName);
+	string input;
+	bool found = false;
+	char repeat = 'n';
+
+	while (true) {
+
+		cout << "\nEnter Account Number (press q to exit): ";
+		cin >> input;
+		if (input == "q")
+			return;
+
+		for (stClient& client : vClients) {
+			if (client.AccountNumber == input) {
+				found = true;
+				printline(20);
+				cout << "Account Number: " << client.AccountNumber << endl;
+				cout << "Pin Code: " << client.PinCode << endl;
+				cout << "Name: " << client.Name << endl;
+				cout << "Phone: " << client.Phone << endl;
+				cout << "Balance: " << client.Balance << endl;
+				printline(20);
+				cout << "Do you want to search for a different Client (y/n)? ";
+				cin >> repeat;
+				if (tolower(repeat) != 'y')
+					return;
+				break;
+			}
+		}
+
+		if (!found) {
+			cout << "Account " << input << " not found\n";
+		}
+
+	} 
+}
 
 void UpdateClient() {
 
@@ -217,7 +254,7 @@ void DeleteClient() {
 				vClients.erase(vClients.begin() + i); 
 				WriteClientsToFile(vClients, FileName);
 				cout << "Deleted Account " << input << " successfully.\n";
-				cout << "Would you like to delete another client (y/n)?";
+				cout << "Would you like to delete another Client (y/n)?";
 				cin >> choice;
 				if (tolower(choice) != 'y')
 					return;
@@ -249,6 +286,7 @@ void SelectOption(int userSelection) {
 		UpdateClient();
 		break;
 	case Find:
+		FindClient();
 		break;
 	// case 6 handeled in main function
 	}
@@ -276,6 +314,7 @@ void DisplayMenu() {
 int GetUserSelection() {
 
 	int userSelection;
+
 	while (true) {
 		cout << "Choose what you want to do (1-6): ";
 		if (cin >> userSelection) {
