@@ -7,7 +7,7 @@
 #include "MyHeader.h"
 using namespace std;
 
-// do find function, debug for errors.
+// Do Deposit, Withdraw and total functions
 
 struct stClient {
 	string AccountNumber;
@@ -17,7 +17,8 @@ struct stClient {
 	double Balance = 0;
 };
 
-enum enBankOption { Show = 1, Add, Delete, Update, Find, Exit };
+enum enBankOption { Show = 1, Add, Delete, Update, Find, Transactions, Exit };
+enum enTransactionOption { Deposit = 1, Withdraw, Total, Back };
 const string FileName = "Clients.txt";
 
 
@@ -268,9 +269,78 @@ void DeleteClient() {
 	}
 }
 
+int GetUserTransactionSelection() {
+
+	int userSelection;
+
+	while (true) {
+		cout << "Choose what you want to do (1-4): ";
+		if (cin >> userSelection) {
+			if (userSelection >= 1 && userSelection <= 4)
+				return userSelection;
+
+			cout << "Invalid choice! Please enter a number between 1 and 6.\n";
+		}
+		else {
+			cout << "Invalid input! Please enter a valid number.\n";
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		}
+	}
 
 
-void SelectOption(int userSelection) {
+}
+
+void DisplayTransactionsMenu() {
+
+	printline(40);
+	center(40, "Transactions Menu Screen"); cout << endl;
+	printline(40);
+	printGap(10); cout << "[1] Deposit.\n";
+	printGap(10); cout << "[2] Withdraw.\n";
+	printGap(10); cout << "[3] Total Balances.\n";
+	printGap(10); cout << "[4] Main Menu.\n";
+	printline(40);
+}
+
+void SelectTransactionOption(int userSelection) {
+
+	switch (static_cast<enTransactionOption>(userSelection)) {
+	case Deposit:
+
+		break;
+	case Withdraw:
+
+		break;
+	case Total:
+		break;
+
+		// case 4 handeled in ClientsTransactions function
+	}
+}
+
+
+
+void ClientsTransactions() {
+
+	int userSelection;
+
+	while (true) {
+		DisplayTransactionsMenu();
+		userSelection = GetUserTransactionSelection();
+
+		if (static_cast<enTransactionOption> (userSelection) == Back) {
+			system("cls");
+			break;
+		}
+		system("cls");
+		SelectTransactionOption(userSelection);
+		system("cls");
+	}
+
+}
+
+void SelectMainOption(int userSelection) {
 
 	switch (static_cast<enBankOption>(userSelection)) {
 	case Show:
@@ -288,13 +358,14 @@ void SelectOption(int userSelection) {
 	case Find:
 		FindClient();
 		break;
-	// case 6 handeled in main function
+	case Transactions:
+		ClientsTransactions();
+		break;
+	// case 7 handeled in main function
 	}
 }
 
 void DisplayMenu() {
-
-	
 
 	printline(40);
 	center(40, "Main Menu Screen"); cout << endl;
@@ -304,21 +375,20 @@ void DisplayMenu() {
 	printGap(10); cout << "[3] Delete Client.\n";
 	printGap(10); cout << "[4] Update Client Info.\n";
 	printGap(10); cout << "[5] Find Client.\n";
-	printGap(10); cout << "[6] Exit.\n";
+	printGap(10); cout << "[6] Transactions.\n";
+	printGap(10); cout << "[7] Exit.\n";
 	printline(40);
-
-	
 	
 }
 
-int GetUserSelection() {
+int GetUserMainSelection() {
 
 	int userSelection;
 
 	while (true) {
 		cout << "Choose what you want to do (1-6): ";
 		if (cin >> userSelection) {
-			if (userSelection >= 1 && userSelection <= 6)
+			if (userSelection >= 1 && userSelection <= 7)
 				return userSelection;
 
 			cout << "Invalid choice! Please enter a number between 1 and 6.\n";
@@ -338,14 +408,14 @@ int main() {
 
 	while (true) {
 		DisplayMenu();
-		userSelection = GetUserSelection();
+		userSelection = GetUserMainSelection();
 
 		if (static_cast<enBankOption> (userSelection) == Exit) {
 			system("cls");
 			break;
 		}
 		system("cls");
-		SelectOption(userSelection);
+		SelectMainOption(userSelection);
 		system("cls");
 	}
 	
