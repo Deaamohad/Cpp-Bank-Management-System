@@ -7,7 +7,7 @@
 #include "MyHeader.h"
 using namespace std;
 
-// Do Deposit, Withdraw and total functions
+// Do total function, validate, check for any bugs.
 
 struct stClient {
 	string AccountNumber;
@@ -303,14 +303,96 @@ void DisplayTransactionsMenu() {
 	printline(40);
 }
 
+void TransactionWithdraw() {
+
+	vector<stClient> vClients = GetClientsFromFile(FileName);
+	string input;
+	double withdraw;
+	bool found = false;
+	char confirm = 'n';
+
+	while (true) {
+
+		cout << "\nEnter Account Number (press q to exit): ";
+		cin >> input;
+		if (input == "q")
+			return;
+
+		for (stClient& client : vClients) {
+			if (client.AccountNumber == input) {
+				found = true;
+				cout << "Found Account " << input << ". The current balance is: " << client.Balance << endl;
+				cout << "Please enter withdraw ammount: ";
+				cin >> withdraw;
+				while (withdraw > client.Balance) {
+					cout << "withdrawal amount exceeds the balance, please enter a different amount: ";
+					cin >> withdraw;
+				}
+				cout << "Are you sure you want to preform this action (y/n)? ";
+				cin >> confirm;
+				if (tolower(confirm) != 'y')
+					return;
+				client.Balance -= withdraw;
+				WriteClientsToFile(vClients, FileName);
+				return;
+			}
+		}
+
+		if (!found) {
+			cout << "Account " << input << " not found\n";
+		}
+
+	}
+
+}
+
+void TransactionDeposit() {
+
+	vector<stClient> vClients = GetClientsFromFile(FileName);
+	string input;
+	double deposit;
+	bool found = false;
+	char confirm = 'n';
+
+	while (true) {
+
+		cout << "\nEnter Account Number (press q to exit): ";
+		cin >> input;
+		if (input == "q")
+			return;
+
+		for (stClient& client : vClients) {
+			if (client.AccountNumber == input) {
+				found = true;
+				cout << "Found Account " << input << ". The current balance is: " << client.Balance << endl;
+				cout << "Please enter deposit ammount: ";
+				cin >> deposit;
+				cout << "Are you sure you want to preform this action (y/n)? ";
+				cin >> confirm;
+				if (tolower(confirm) != 'y')
+					return;
+				client.Balance += deposit;
+				WriteClientsToFile(vClients, FileName);
+				return;
+			}
+		}
+
+		if (!found) {
+			cout << "Account " << input << " not found\n";
+		}
+
+	}
+
+}
+
 void SelectTransactionOption(int userSelection) {
 
 	switch (static_cast<enTransactionOption>(userSelection)) {
 	case Deposit:
-
+		TransactionDeposit();
 		break;
 	case Withdraw:
-
+		TransactionWithdraw();
 		break;
 	case Total:
 		break;
