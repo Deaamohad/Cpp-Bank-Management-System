@@ -7,7 +7,7 @@
 #include "MyHeader.h"
 using namespace std;
 
-// Do total function, validate, check for any bugs.
+// Validate, check for any bugs. 
 
 struct stClient {
 	string AccountNumber;
@@ -188,6 +188,38 @@ void FindClient() {
 		}
 
 	} 
+}
+
+void TotalBalances() {
+
+	vector<stClient> vClients = GetClientsFromFile(FileName);
+	string message = "Balances list (" + to_string(vClients.size()) + ") Client(s).";
+	double total = 0;
+
+
+	cout << endl; center(90, message); cout << endl;
+	printline(90);
+	cout << "|"; center(16, "Account Number"); cout << "|";
+	center(30, "Client Name"); cout << "|"; center(10, "Balance");
+	cout << endl; printline(90);
+
+	for (stClient& client : vClients) {
+
+		cout << "|"; center(16, client.AccountNumber); cout << "|";
+		center(30, client.Name); cout << "|"; center(20, to_string(client.Balance));
+		cout << endl;
+		
+		total += client.Balance;
+		}
+
+	cout << endl; printline(90); cout << endl;
+	message = "Total Balances = " + to_string(total);
+	center(90, message); cout << endl;
+	
+	cout << "\nPress any key to go back to the menu.\n";
+	cin.get();
+	cin.ignore();
+
 }
 
 void UpdateClient() {
@@ -395,7 +427,7 @@ void SelectTransactionOption(int userSelection) {
 		TransactionWithdraw();
 		break;
 	case Total:
-		break;
+		TotalBalances();
 
 		// case 4 handeled in ClientsTransactions function
 	}
