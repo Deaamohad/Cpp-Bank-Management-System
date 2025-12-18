@@ -15,6 +15,18 @@ struct stClient {
 struct stUser {
 	std::string username;
 	std::string password;
+	int permissions = 0;
+};
+
+enum enPermissions {
+	eAll = -1,
+	eShowClients = 1,
+	eAddNewClients = 2,
+	eDeleteClients = 4,
+	eUpdateClients = 8,
+	eFindClients = 16,
+	eTransactions = 32,
+	eManageUsers = 64
 };
 
 // Enums for main menu and transactions

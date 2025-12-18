@@ -8,19 +8,17 @@
 using namespace std;
 
 const string UsersFile = "Users.txt";
-
-// NOTE: `stUser` and menu enums are declared in MyHeader.h to centralize type definitions.
-
 const string FileName = "Clients.txt";
 
-// Forward declarations for functions defined later but used earlier
+stUser CurrentUser;
+
 void DisplayManageUsersMenu();
 void SelectUserOption(int userSelection);
 void MainMenu();
 vector<stUser> GetUsersFromFile(string UsersFile);
 
 string ConvertUserRecordToLine(stUser user, string delimiter = "#//#") {
-    return user.username + delimiter + user.password;
+    return user.username + delimiter + to_string(user.permissions) + delimiter + user.password;
 }
 
 stUser ConvertLineToUserRecord(string line, string delimiter = "#//#") {
@@ -28,7 +26,8 @@ stUser ConvertLineToUserRecord(string line, string delimiter = "#//#") {
     vector<string> data = split(line, delimiter);
 
     user.username = data[0];
-    user.password = data[1];
+    user.permissions = stoi(data[1]);
+    user.password = data[2];
 
     return user;
 }
@@ -536,29 +535,45 @@ void ManageUsers() {
     }
 }
 
+void NoPermissionScreen() {
+    printline(50);
+    center(50, "You don't have this permissions"); cout << endl;
+    printline(50);
+    
+    cin.get();
+    cin.ignore();
+    MainMenu();
+}
 
 void SelectMainOption(int userSelection) {
     switch (static_cast<enBankOption>(userSelection)) {
     case Show:
-        DisplayClients();
+        if ((CurrentUser.permissions & eShowClients) == eShowClients) DisplayClients();
+        else NoPermissionScreen();
         break;
     case Add:
-        AddNewClient();
+        if ((CurrentUser.permissions & eAddNewClients) == eAddNewClients) AddNewClient();
+        else NoPermissionScreen();
         break;
     case Delete:
-        DeleteClient();
+        if ((CurrentUser.permissions & eDeleteClients) == eDeleteClients) DeleteClient();
+        else NoPermissionScreen();
         break;
     case Update:
-        UpdateClient();
+        if ((CurrentUser.permissions & eUpdateClients) == eUpdateClients) UpdateClient();
+        else NoPermissionScreen();
         break;
     case Find:
-        FindClient();
+        if ((CurrentUser.permissions & eFindClients) == eFindClients) FindClient();
+        else NoPermissionScreen();
         break;
     case Transactions:
-        ClientsTransactions();
+        if ((CurrentUser.permissions & eTransactions) == eTransactions) ClientsTransactions();
+        else NoPermissionScreen();
         break;
     case Users:
-        ManageUsers();
+        if ((CurrentUser.permissions & eManageUsers) == eManageUsers) ManageUsers();
+        else NoPermissionScreen();
         break;
     case Logout:
         break;
@@ -595,7 +610,7 @@ void FindUser() {
 void UpdateUser() {
     string username, password;
     vector<stUser> vUsers = GetUsersFromFile(UsersFile);
-    char choice;
+    char input;
 
     while (true) {
         std::cout << "Please enter the Username to update (press q to exit): ";
@@ -604,18 +619,62 @@ void UpdateUser() {
         if (username == "q")
             return;
 
-        stUser* foundUser = FindUserByAccount(vUsers, username);
-        if (foundUser) {
+        stUser* user = FindUserByAccount(vUsers, username);
+        if (user) {
             std::cout << "Found User " << username << "! Please fill the new information:\n";
             std::cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Enter the password: ";
-            cin >> foundUser->password;
+            cin >> user->password;
+            cout << "Do you want to give full access y/n? ";
+            user->permissions = 0;
+            cin >> input;
+            if (input != 'y') {
+                cout << "Do you want to give access to:\n";
+                cout << "Show Clients List y/n? ";
+                cin >> input;
+                if (input == 'y') {
+                    user->permissions += enPermissions::eShowClients;
+                }
+                cout << "Add New Clients List y/n? ";
+                cin >> input;
+                if (input == 'y') {
+                    user->permissions += enPermissions::eAddNewClients;
+                }
+                cout << "Delete Clients y/n? ";
+                cin >> input;
+                if (input == 'y') {
+                    user->permissions += enPermissions::eDeleteClients;
+                }
+                cout << "Update Clients y/n? ";
+                cin >> input;
+                if (input == 'y') {
+                    user->permissions += enPermissions::eUpdateClients;
+                }
+                cout << "Find Clients y/n? ";
+                cin >> input;
+                if (input == 'y') {
+                    user->permissions += enPermissions::eFindClients;
+                }
+                cout << "Transactions y/n? ";
+                cin >> input;
+                if (input == 'y') {
+                    user->permissions += enPermissions::eTransactions;
+                }
+                cout << "Manage Users y/n? ";
+                cin >> input;
+                if (input == 'y') {
+                    user->permissions += enPermissions::eManageUsers;
+                }
+                else {
+                    user->permissions = eAll;
+                }
+            }
             WriteUsersToFile(vUsers, UsersFile);
-            std::cout << "\nUser (" << foundUser->username << ") Updated Successfully!\nDo you want to update more User/s (y/n)? ";
-            std::cin >> choice;
+            std::cout << "\nUser (" << user->username << ") Updated Successfully!\nDo you want to update more User/s (y/n)? ";
+            std::cin >> input;
             std::cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            if (std::tolower(choice) != 'y')
+            if (std::tolower(input) != 'y')
                 return;
         }
         else {
@@ -661,7 +720,7 @@ void AddUser() {
     stUser user;
     fstream file;
     file.open(UsersFile, ios::app);
-    char repeat;
+    char input;
 
     DisplayScreenHeader(40, "Add Users Screen");
     cout << "Adding new Client:\n";
@@ -681,11 +740,54 @@ void AddUser() {
 
         cout << "Enter Password: ";
         cin >>  user.password;
+        cout << "Do you want to give full access y/n? ";
+        cin >> input;
+        if (input != 'y') {
+            cout << "Do you want to give access to:\n";
+            cout << "Show Clients List y/n? ";
+            cin >> input;
+            if (input == 'y') {
+                user.permissions += enPermissions::eShowClients;
+            }
+            cout << "Add New Clients List y/n? ";
+            cin >> input;
+            if (input == 'y') {
+                user.permissions += enPermissions::eAddNewClients;
+            }
+            cout << "Delete Clients y/n? ";
+            cin >> input;
+            if (input == 'y') {
+                user.permissions += enPermissions::eDeleteClients;
+            }
+            cout << "Update Clients y/n? ";
+            cin >> input;
+            if (input == 'y') {
+                user.permissions += enPermissions::eUpdateClients;
+            }
+            cout << "Find Clients y/n? ";
+            cin >> input;
+            if (input == 'y') {
+                user.permissions += enPermissions::eFindClients;
+            }
+            cout << "Transactions y/n? ";
+            cin >> input;
+            if (input == 'y') {
+                user.permissions += enPermissions::eTransactions;
+            }
+            cout << "Manage Users y/n? ";
+            cin >> input;
+            if (input == 'y') {
+                user.permissions += enPermissions::eManageUsers;
+            }
+            else {
+                user.permissions = eAll;
+            }
+        }
         file << ConvertUserRecordToLine(user) << endl;
         std::cout << "\nUser (" << user.username<< ") Added Successfully!\nDo you want to add more User/s (y/n)? ";
-        std::cin >> repeat;
+        std::cin >> input;
         std::cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    } while (std::tolower(repeat) == 'y');
+    } while (std::tolower(input) == 'y');
 
     file.close();
 
@@ -702,6 +804,7 @@ void DisplayUsers() {
 
     vector<pair<int, string>> columns = {
         {20, "User Name"},
+        {20, "Permission"},
         {20, "Password"}
     };
     DisplayTableHeader(90, columns);
@@ -709,6 +812,7 @@ void DisplayUsers() {
     for (stUser& user: Users) {
         vector<pair<int, string>> row = {
             {20, user.username},
+            {20, to_string(user.permissions)},
             {20, user.password}
         };
         DisplayTableRow(row);
@@ -796,6 +900,9 @@ bool IsValidUser(string username, string password) {
 
 void LoginMenu() {
 
+    vector<stUser> vUsers = GetUsersFromFile(UsersFile);
+
+
     string username, password;
     DisplayScreenHeader(30, "Login Screen");
 
@@ -812,6 +919,9 @@ void LoginMenu() {
         std::cout << "Enter Password: ";
         std::getline(std::cin, password);
     }
+
+    CurrentUser = *FindUserByAccount(vUsers, username);
+
 }
 
 void MainMenu() {
