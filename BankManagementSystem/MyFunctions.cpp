@@ -5,6 +5,7 @@
 #include <random>
 #include <cctype>
 #include "MyHeader.h"
+
 using namespace std;
 
 
@@ -40,4 +41,30 @@ std::vector<std::string> split(string text, string separator) {
 	}
 
 	return result;
+}
+
+stClient ConvertLinetoClientRecord(string line, string delimiter) {
+	stClient client;
+	vector<string> data = split(line, delimiter);
+
+	client.AccountNumber = data[0];
+	client.PinCode = data[1];
+	client.Name = data[2];
+	client.Phone = data[3];
+	client.Balance = stod(data[4]);
+
+	return client;
+}
+
+string ConvertClientRecordToLine(stClient client, string delimiter) {
+	return client.AccountNumber + delimiter + client.PinCode + delimiter +
+		client.Name + delimiter + client.Phone + delimiter + to_string(client.Balance);
+}
+
+
+void DisplayScreenHeader(int width, const string& title) {
+	printline(width);
+	center(width, title);
+	cout << endl;
+	printline(width);
 }
