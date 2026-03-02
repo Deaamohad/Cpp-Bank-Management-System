@@ -24,6 +24,7 @@ string ConvertUserRecordToLine(stUser user, string delimiter = "#//#") {
 stUser ConvertLineToUserRecord(string line, string delimiter = "#//#") {
     stUser user;
     vector<string> data = split(line, delimiter);
+    if (data.size() < 3) return user;
 
     user.username = data[0];
     user.permissions = stoi(data[1]);
@@ -39,7 +40,8 @@ vector<stClient> GetClientsFromFile(string FileName) {
     string line;
 
     while (std::getline(file, line)) {
-        Clients.push_back(ConvertLinetoClientRecord(line));
+        stClient c = ConvertLinetoClientRecord(line);
+        if (!c.AccountNumber.empty()) Clients.push_back(c);
     }
     file.close();
 
@@ -378,7 +380,8 @@ vector<stUser> GetUsersFromFile(string UsersFile) {
     string line;
 
     while (std::getline(file, line)) {
-        Users.push_back(ConvertLineToUserRecord(line));
+        stUser u = ConvertLineToUserRecord(line);
+        if (!u.username.empty()) Users.push_back(u);
     }
     file.close();
 
@@ -430,8 +433,8 @@ void TransactionWithdraw() {
             std::cout << "Please enter withdraw amount: ";
             std::cin >> withdraw;
 
-            while (withdraw > foundClient->Balance) {
-                std::cout << "Withdrawal amount exceeds the balance, please enter a different amount: ";
+            while (withdraw < 0 || withdraw > foundClient->Balance) {
+                std::cout << "Invalid amount (use positive number, max " << foundClient->Balance << "). Try again: ";
                 std::cin >> withdraw;
             }
 
@@ -469,6 +472,10 @@ void TransactionDeposit() {
             std::cout << "Found Account " << input << ". The current balance is: " << foundClient->Balance << endl;
             std::cout << "Please enter deposit amount: ";
             std::cin >> deposit;
+            while (deposit < 0) {
+                std::cout << "Amount must be positive. Try again: ";
+                std::cin >> deposit;
+            }
 
             std::cout << "Are you sure you want to perform this action (y/n)? ";
             std::cin >> confirm;
@@ -537,7 +544,7 @@ void ManageUsers() {
 
 void NoPermissionScreen() {
     printline(50);
-    center(50, "You don't have this permissions"); cout << endl;
+    center(50, "You don't have permission"); cout << endl;
     printline(50);
     
     cin.get();
@@ -595,7 +602,7 @@ void FindUser() {
         stUser* foundUser = FindUserByAccount(vUsers, input);
         if (foundUser) {
             cout << "Found User " << input << "!";
-            std::cout << "Do you want to search for a different Client (y/n)? ";
+            std::cout << "Do you want to search for a different User (y/n)? ";
             std::cin >> repeat;
             if (std::tolower(repeat) != 'y')
                 return;
@@ -628,7 +635,9 @@ void UpdateUser() {
             cout << "Do you want to give full access y/n? ";
             user->permissions = 0;
             cin >> input;
-            if (input != 'y') {
+            if (input == 'y') {
+                user->permissions = eAll;
+            } else {
                 cout << "Do you want to give access to:\n";
                 cout << "Show Clients List y/n? ";
                 cin >> input;
@@ -664,9 +673,6 @@ void UpdateUser() {
                 cin >> input;
                 if (input == 'y') {
                     user->permissions += enPermissions::eManageUsers;
-                }
-                else {
-                    user->permissions = eAll;
                 }
             }
             WriteUsersToFile(vUsers, UsersFile);
@@ -723,7 +729,7 @@ void AddUser() {
     char input;
 
     DisplayScreenHeader(40, "Add Users Screen");
-    cout << "Adding new Client:\n";
+    cout << "Adding new User:\n";
     
 
     do {
@@ -742,7 +748,9 @@ void AddUser() {
         cin >>  user.password;
         cout << "Do you want to give full access y/n? ";
         cin >> input;
-        if (input != 'y') {
+        if (input == 'y') {
+            user.permissions = eAll;
+        } else {
             cout << "Do you want to give access to:\n";
             cout << "Show Clients List y/n? ";
             cin >> input;
@@ -779,9 +787,6 @@ void AddUser() {
             if (input == 'y') {
                 user.permissions += enPermissions::eManageUsers;
             }
-            else {
-                user.permissions = eAll;
-            }
         }
         file << ConvertUserRecordToLine(user) << endl;
         std::cout << "\nUser (" << user.username<< ") Added Successfully!\nDo you want to add more User/s (y/n)? ";
@@ -796,7 +801,7 @@ void AddUser() {
 
 void DisplayUsers() {
     vector<stUser> Users = GetUsersFromFile(UsersFile);
-    string message = "Client list (" + to_string(Users.size()) + ") Client(s).";
+    string message = "User list (" + to_string(Users.size()) + ") User(s).";
 
     std::cout << endl;
     center(90, message);

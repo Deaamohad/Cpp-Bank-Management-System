@@ -46,6 +46,7 @@ std::vector<std::string> split(string text, string separator) {
 stClient ConvertLinetoClientRecord(string line, string delimiter) {
 	stClient client;
 	vector<string> data = split(line, delimiter);
+	if (data.size() < 5) return client;
 
 	client.AccountNumber = data[0];
 	client.PinCode = data[1];
